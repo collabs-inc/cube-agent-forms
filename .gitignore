@@ -37,3 +37,12 @@ learnings.md
 .vercel/
 .agent-native/
 data/*.lock
+
+.generated/
+
+# Cube runtime state lives outside the checkout; these paths are symlinks.
+/data
+/.agent-native
+/media
+/plans
+/.deploy-tmp/

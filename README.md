@@ -1,57 +1,36 @@
-# Forms
+# Agent-Native Forms for Cube
 
-An open-source, agent-native alternative to Typeform and Google Forms. Describe
-the form you want, refine it in the visual editor, and publish a public form that
-stores submissions in your own SQL database.
+Build forms and review responses. This is a standalone adaptation of [Agent-Native Forms](https://www.agent-native.com/apps/forms/), built by [Builder.io](https://github.com/BuilderIO/agent-native). Upstream source provenance is recorded in [UPSTREAM.json](UPSTREAM.json); the original guide is [UPSTREAM-README.md](UPSTREAM-README.md). Cube integration recipes are maintained in [cube-agent-native-apps](https://github.com/collabs-inc/cube-agent-native-apps).
 
-**Live app: [forms.agent-native.com](https://forms.agent-native.com?utm_source=github&utm_medium=referral&utm_content=forms-readme)**
+## Install in Cube
 
-Build forms conversationally or by hand — the agent updates the schema and the
-preview updates from SQL-backed state. Route new submissions wherever you need
-them.
+Use Cube’s Add app from repo with https://github.com/collabs-inc/cube-agent-forms. Cube installs dependencies, builds the app, and runs it behind its authenticated app gate. Node.js 22.22 or newer is required.
 
-## Features
+For a manual local check, run these commands from the checkout:
 
-- Build and edit forms conversationally, with a live preview.
-- Visual builder for labels, validation, options, and field order.
-- Shipped field types: text, email, number, long text, select, multi-select,
-  checkbox, radio, date, rating, and scale.
-- Submissions stored in SQL with a per-response detail view and dashboard.
-- Route submissions to webhooks, Slack, Discord, or Google Sheets via Apps
-  Script.
-- Publish public form URLs with a thank-you message.
-
-## Develop locally
-
-Scaffold your own copy and run it:
-
-```bash
-npx --yes @agent-native/core@latest create my-forms --standalone --template forms
-cd my-forms
-pnpm install
-pnpm dev
+```sh
+node cube/install.mjs
+PORT=3000 node cube/start.mjs
 ```
 
-Full docs: [agent-native.com/docs/template-forms](https://agent-native.com/docs/template-forms?utm_source=github&utm_medium=referral&utm_content=forms-readme).
+Open http://127.0.0.1:3000. The server binds only to loopback. The local owner session relies on Cube’s gate for authentication; do not expose the raw server directly to the internet.
 
-## Submission destinations
+## Configure AI and connections
 
-Open a form's **Integrations** tab and save a destination before publishing.
-Slack uses an Incoming Webhook URL. Google Sheets uses a deployed Apps Script
-web app URL ending in `/exec` (not a spreadsheet URL or `/dev` URL). The script
-should parse the JSON body and append the values, for example:
+Open **Connect AI** or the app’s model settings and configure a supported provider. API keys are not included. Cube’s Claude/Codex CLI login is not automatically shared with this app’s provider runtime. Without a provider, manual editing and local actions remain available, but AI generation is unavailable.
 
-```ts
-function doPost(e) {
-  const payload = JSON.parse(e.postData.contents);
-  SpreadsheetApp.getActiveSpreadsheet()
-    .getSheets()[0]
-    .appendRow([payload.submittedAt, payload.formTitle, payload.responseId]);
-  return ContentService.createTextOutput(JSON.stringify({ ok: true }));
-}
-```
+Provider environment configuration can be kept in `~/.local/share/cube-agent-forms/config.env` (or under `$XDG_DATA_HOME/cube-agent-forms`). Restrict this file to your user, for example with `chmod 600`. Do not commit credentials.
 
-Deploy it as a web app that executes as you and allows anyone with the URL to
-access it, then paste the deployed `/exec` URL into Forms. The destination
-receives the form metadata plus one property per field label; duplicate labels
-are disambiguated with the field ID.
+Cube protects the whole app, including published form URLs. Public submission links require a separate public deployment; this package does not bypass Cube authentication.
+
+## Data and updates
+
+Database, blobs, uploads, and runtime state live under `$XDG_DATA_HOME/cube-agent-forms`, defaulting to `~/.local/share/cube-agent-forms`. The app checkout contains links to this state. Cube updates can replace the checkout without deleting it. Stop the app before backing up the complete data directory; keep its `auth-secret` alongside the database so encrypted references stay readable. Uninstalling leaves this directory intact.
+
+## Development
+
+Run `npm exec --yes --package=pnpm@10.29.1 -- pnpm install --frozen-lockfile` and `node cube/build.mjs`. The runtime uses a production Nitro build and a per-app PGlite database through Agent-Native’s embedded-host API. Local storage replaces hosted blob requirements. See the integration repository for verification results and upstream compatibility patches.
+
+## Attribution
+
+Upstream declares the MIT license. Original application code belongs to Builder.io and its contributors; Cube packaging and compatibility changes are maintained by collabs-inc.

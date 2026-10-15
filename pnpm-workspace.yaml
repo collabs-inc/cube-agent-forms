@@ -64,3 +64,9 @@ minimumReleaseAgeExclude:
   - "@modelcontextprotocol/node"
   - "@modelcontextprotocol/core"
   - "@modelcontextprotocol/client"
+
+onlyBuiltDependencies:
+  - esbuild
+  - "@swc/core"
+  - node-pty
+  - ffmpeg-static

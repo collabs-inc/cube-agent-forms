@@ -3,10 +3,18 @@
   "onboarding": {
     "firstRun": {
       "development": "off",
-      "production": "connect"
+      "production": "off"
     }
   },
   "doctor": {
     "failOnBuild": false
+  },
+  "deployment": {
+    "environment": "local"
+  },
+  "runtime": {
+    "auth": {
+      "enabled": false
+    }
   }
 }
